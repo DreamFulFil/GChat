@@ -1,2 +1,2 @@
-# GChatMaster
-GChat Master Service, used to preserve information receieved from Nodes.
+# GChat
+GChat is a system that handles information transmitting.
