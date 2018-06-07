@@ -21,8 +21,8 @@ import org.springframework.transaction.PlatformTransactionManager;
 @Configuration
 @EnableJpaRepositories(basePackages = { "dream.free.sideproject.cowork.gchat.dao" })
 @EnableJpaAuditing
-@Profile("dev")
-public class PersistenceJPAConfiguration {
+@Profile("prod")
+public class PersistenceJPAConfigurationForProduction {
 
     @Bean
     public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
@@ -71,4 +71,5 @@ public class PersistenceJPAConfiguration {
         properties.setProperty("hibernate.format_sql", "false");
         return properties;
     }
+    
 }

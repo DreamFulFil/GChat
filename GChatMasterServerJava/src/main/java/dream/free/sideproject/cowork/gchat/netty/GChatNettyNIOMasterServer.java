@@ -1,5 +1,11 @@
 package dream.free.sideproject.cowork.gchat.netty;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -15,35 +21,39 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
  *
  * TODO:確實理解後要再調整
  */
-public class DiscardServer {
+@Component
+public class GChatNettyNIOMasterServer {
     
+    @Value("${gchat.master.server.port}")
     private int port;
     
-    public DiscardServer(int port) {
-        this.port = port;
-    }
+    //用來接收Connection
+    private EventLoopGroup bossGroup = new NioEventLoopGroup();  
+    //處理bossGroup收到的Connection後續動作
+    private EventLoopGroup workerGroup = new NioEventLoopGroup();
     
+    @PostConstruct
     public void run() throws Exception {
-        EventLoopGroup bossGroup = new NioEventLoopGroup();
-        EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
-            ServerBootstrap b = new ServerBootstrap();
-            b.group(bossGroup, workerGroup)
+            //sets up a server
+            ServerBootstrap serverBootStrap = new ServerBootstrap();
+            serverBootStrap
+             .group(bossGroup, workerGroup)
              .channel(NioServerSocketChannel.class)
              .childHandler(new ChannelInitializer<SocketChannel>() {
                  @Override
-                 public void initChannel(SocketChannel ch) throws Exception {
-                     ch.pipeline().addLast(new DiscardServerHandler());
+                 public void initChannel(SocketChannel socketChannel) throws Exception {
+                     //設定Handler
+                     socketChannel.pipeline().addLast(new GChatNettyNIOMasterServerHandler());
                  }
              })
              .option(ChannelOption.SO_BACKLOG, 128)
              .childOption(ChannelOption.SO_KEEPALIVE, true);
     
             // Bind and start to accept incoming connections.
-            ChannelFuture f = b.bind(port).sync(); // (7)
+            ChannelFuture f = serverBootStrap.bind(port).sync();
     
             // Wait until the server socket is closed.
-            // In this example, this does not happen, but you can do that to gracefully
             // shut down your server.
             f.channel().closeFuture().sync();
         } finally {
@@ -52,13 +62,9 @@ public class DiscardServer {
         }
     }
     
-    public static void main(String[] args) throws Exception {
-        int port;
-        if (args.length > 0) {
-            port = Integer.parseInt(args[0]);
-        } else {
-            port = 8080;
-        }
-        new DiscardServer(port).run();
+    @PreDestroy
+    private void cleanUp() {
+        workerGroup.shutdownGracefully();
+        bossGroup.shutdownGracefully();
     }
 }

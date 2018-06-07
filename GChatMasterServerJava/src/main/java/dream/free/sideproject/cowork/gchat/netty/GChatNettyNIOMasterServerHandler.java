@@ -1,6 +1,5 @@
 package dream.free.sideproject.cowork.gchat.netty;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
@@ -9,17 +8,20 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
  * @author George-Chou
  *
  */
-public class DiscardServerHandler extends ChannelInboundHandlerAdapter {
+public class GChatNettyNIOMasterServerHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        // Discard the received data silently.
-        ((ByteBuf) msg).release(); 
-        
         //TODO: 改類別命名，改實作。
-//        Usual way to implement
+//        ByteBuf in = (ByteBuf)msg;
 //        try {
-//            // Do something with msg
+            // Do something with msg
+//            while(in.isReadable()) {
+//                System.err.print((char)in.readByte());
+//                System.err.flush();
+//            }
+            ctx.write(msg);
+            ctx.flush();
 //        } finally {
 //            ReferenceCountUtil.release(msg);
 //        }
